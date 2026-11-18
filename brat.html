@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<title>Level Up!</title>
+<meta name="theme-color" content="#0b0720">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Rubik:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0b0720;
+    --panel: rgba(14, 8, 38, .92);
+    --cyan: #29f0ff;
+    --mag: #ff3dac;
+    --yellow: #ffe14a;
+    --green: #5dff8a;
+    --ink: #eaf6ff;
+    --px: "Press Start 2P", "Courier New", monospace;
+    --body: "Rubik", system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html { height: 100%; }
+  body {
+    margin: 0; min-height: 100%; overflow-x: hidden; color: var(--ink); font-family: var(--body);
+    background: linear-gradient(180deg, #07041a 0%, #1a0b3f 55%, #3a1068 100%) fixed;
+    -webkit-font-smoothing: antialiased; -webkit-tap-highlight-color: transparent;
+  }
+  body::after { content: ""; position: fixed; inset: 0; z-index: 90; pointer-events: none; opacity: .3;
+    background: repeating-linear-gradient(0deg, transparent 0 2px, rgba(0, 0, 0, .55) 2px 3px); }
+  [hidden] { display: none !important; }
+  button { font-family: inherit; }
+  :focus-visible { outline: 3px solid var(--yellow); outline-offset: 3px; }
+
+  /* ---------- Фон: звёзды, солнце, сетка ---------- */
+  .star { position: fixed; z-index: 0; width: var(--s); height: var(--s); background: #fff; opacity: var(--o); animation: twinkle var(--d) steps(2) var(--dl) infinite; pointer-events: none; }
+  @keyframes twinkle { 50% { opacity: .1; } }
+  .sun {
+    position: fixed; z-index: 0; left: 50%; bottom: 20vh; width: min(70vw, 20rem); aspect-ratio: 1; transform: translateX(-50%); border-radius: 50%; pointer-events: none;
+    background: linear-gradient(180deg, #ffe14a 10%, #ff7a3c 50%, #ff3dac 90%); opacity: .85;
+    -webkit-mask-image: linear-gradient(to bottom, #000 0 48%, transparent 48% 52%, #000 52% 60%, transparent 60% 65%, #000 65% 72%, transparent 72% 77%, #000 77% 84%, transparent 84% 88%, #000 88%);
+    mask-image: linear-gradient(to bottom, #000 0 48%, transparent 48% 52%, #000 52% 60%, transparent 60% 65%, #000 65% 72%, transparent 72% 77%, #000 77% 84%, transparent 84% 88%, #000 88%);
+  }
+  .grid { position: fixed; z-index: 0; left: -60%; right: -60%; bottom: 0; height: 36vh; pointer-events: none; transform: perspective(260px) rotateX(58deg); transform-origin: 50% 100%;
+    background:
+      linear-gradient(180deg, rgba(255, 61, 172, .0) 0%, rgba(255, 61, 172, .28) 100%),
+      repeating-linear-gradient(90deg, rgba(255, 61, 172, .85) 0 2px, transparent 2px 64px),
+      repeating-linear-gradient(0deg, rgba(255, 61, 172, .85) 0 2px, transparent 2px 44px);
+    background-color: rgba(20, 6, 50, .7); animation: gridMove 1.6s linear infinite; }
+  @keyframes gridMove { to { background-position: 0 0, 0 0, 0 44px; } }
+  #fx { position: fixed; inset: 0; z-index: 2; width: 100%; height: 100%; pointer-events: none; }
+
+  /* ---------- XP-шкала ---------- */
+  .xp { position: fixed; top: calc(env(safe-area-inset-top, 0px) + .8rem); left: 50%; transform: translateX(-50%); z-index: 5; width: min(86vw, 24rem); display: flex; align-items: center; gap: .6rem; font-family: var(--px); font-size: .55rem; color: var(--yellow); pointer-events: none; }
+  .xpbar { flex: 1; height: .85rem; border: 2px solid var(--cyan); background: var(--bg); padding: 1px; }
+  .xpbar i { display: block; height: 100%; width: var(--p, 0%); background: repeating-linear-gradient(90deg, var(--green) 0 6px, #2fd36a 6px 8px); transition: width .7s steps(8); }
+
+  main { position: relative; z-index: 3; min-height: 100vh; min-height: 100svh; display: grid; place-items: center; padding: 1rem 1.1rem; }
+  .scene { width: 100%; display: grid; justify-items: center; align-content: center; gap: 1.2rem; padding: 3.6rem 0 2.2rem; }
+  .scene.enter { animation: sceneIn .55s steps(6) both; }
+  .scene.leave { animation: sceneOut .35s steps(5) forwards; }
+  @keyframes sceneIn { from { opacity: 0; transform: translateY(14px); } }
+  @keyframes sceneOut { to { opacity: 0; transform: translateY(-10px); } }
+
+  .panel { position: relative; width: min(100%, 27rem); padding: 1.3rem 1.15rem; background: var(--panel); border: 4px solid var(--cyan); box-shadow: 0 0 0 4px var(--bg), 0 0 0 7px var(--mag), 0 0 36px 8px rgba(41, 240, 255, .25); }
+  .h { font-family: var(--px); font-weight: 400; font-size: clamp(.85rem, 4.2vw, 1.1rem); line-height: 1.5; margin: 0; text-align: center; color: var(--yellow); text-shadow: 3px 3px 0 #b8325f, 0 0 14px rgba(255, 225, 74, .5); text-transform: uppercase; }
+  .sub { font-family: var(--px); font-size: .62rem; line-height: 1.7; margin: 0; text-align: center; color: var(--cyan); text-transform: uppercase; }
+
+  /* ---------- Кнопка ---------- */
+  .actions { margin-top: .6rem; min-height: 3.6rem; display: flex; justify-content: center; }
+  .btn { font-family: var(--px); font-size: .8rem; padding: 1rem 1.4rem; border: 0; cursor: pointer; background: var(--yellow); color: #1a0f3d; text-transform: uppercase;
+    box-shadow: 0 6px 0 #b88a00, 0 0 26px rgba(255, 225, 74, .55); opacity: 0; transform: translateY(8px); pointer-events: none; transition: opacity .5s steps(5), transform .5s steps(5); }
+  .btn.show { opacity: 1; transform: none; pointer-events: auto; }
+  .btn:active { transform: translateY(4px); box-shadow: 0 2px 0 #b88a00; }
+  .btn .arr { display: inline-block; margin-left: .5rem; animation: blink 1s steps(2) infinite; }
+  @keyframes blink { 50% { opacity: 0; } }
+
+  /* ---------- 1. Титульный экран ---------- */
+  .title { text-align: center; font-family: var(--px); text-transform: uppercase; line-height: 1.55; margin: 0; }
+  .title .l1 { display: block; font-size: clamp(.9rem, 5vw, 1.2rem); color: var(--cyan); text-shadow: 0 0 12px rgba(41, 240, 255, .7); }
+  .title .l2 { display: block; font-size: clamp(1.35rem, 7.4vw, 2.1rem); margin-top: .6rem; background: linear-gradient(180deg, #fff 0%, var(--yellow) 45%, var(--mag) 100%); -webkit-background-clip: text; background-clip: text; color: transparent; filter: drop-shadow(0 0 14px rgba(255, 61, 172, .65)); overflow-wrap: anywhere; }
+  .title .l3 { display: block; font-size: clamp(.9rem, 5vw, 1.2rem); margin-top: .8rem; color: var(--yellow); }
+  .press { font-family: var(--px); font-size: .7rem; color: var(--green); text-align: center; animation: blink 1s steps(2) infinite; margin: 0; }
+  .glitch { animation: glitch 3.2s steps(1) infinite; }
+  @keyframes glitch { 0%, 92%, 100% { transform: none; } 93% { transform: translate(-3px, 0); } 95% { transform: translate(3px, 1px); } 97% { transform: translate(-2px, -1px); } }
+
+  /* ---------- 2. Профиль ---------- */
+  .who { display: grid; grid-template-columns: 5rem 1fr; gap: 1rem; align-items: center; margin-bottom: 1rem; }
+  .avatar { width: 5rem; height: 5rem; display: grid; place-items: center; font-size: 2.6rem; border: 4px solid var(--yellow); background: linear-gradient(180deg, #2a1566, #5a1f86); box-shadow: 0 0 18px rgba(255, 225, 74, .5); }
+  .who b { display: block; font-family: var(--px); font-size: .7rem; line-height: 1.6; color: var(--yellow); text-transform: uppercase; }
+  .who span { font-family: var(--px); font-size: .58rem; line-height: 1.7; color: var(--cyan); text-transform: uppercase; }
+  .stat { display: grid; grid-template-columns: 5.6rem 1fr 2.4rem; align-items: center; gap: .5rem; margin: .65rem 0; }
+  .stat label { font-family: var(--px); font-size: .58rem; color: var(--ink); text-transform: uppercase; }
+  .stat em { font-family: var(--px); font-style: normal; font-size: .55rem; color: var(--yellow); text-align: right; }
+  .bar { height: .9rem; border: 2px solid var(--cyan); background: var(--bg); padding: 1px; }
+  .bar i { display: block; height: 100%; width: 0; background: repeating-linear-gradient(90deg, var(--mag) 0 6px, #c42a86 6px 8px); transition: width 1.5s steps(14); }
+  .go .bar i { width: var(--v); }
+  .ability { margin: 1.1rem 0 0; padding-top: .9rem; border-top: 3px dashed rgba(41, 240, 255, .4); font-size: .98rem; line-height: 1.45; }
+  .ability b { display: block; font-family: var(--px); font-size: .58rem; color: var(--green); margin-bottom: .4rem; text-transform: uppercase; }
+
+  /* ---------- 3. Достижения ---------- */
+  .achs { display: grid; gap: .75rem; width: min(100%, 27rem); }
+  .ach { display: grid; grid-template-columns: 3rem 1fr; gap: .8rem; align-items: center; padding: .75rem .85rem; border: 3px solid var(--yellow); background: var(--panel); box-shadow: 0 0 0 3px var(--bg), 0 0 20px rgba(255, 225, 74, .3); transform: translateX(120%); opacity: 0; transition: transform .5s steps(7), opacity .3s; }
+  .ach.in { transform: none; opacity: 1; }
+  .ach .ic { font-size: 2rem; line-height: 1; text-align: center; filter: drop-shadow(0 0 8px rgba(255, 225, 74, .8)); }
+  .ach b { display: block; font-family: var(--px); font-size: .62rem; line-height: 1.5; color: var(--yellow); text-transform: uppercase; }
+  .ach .txt { text-align: left; min-width: 0; }
+  .ach .dsc { display: block; font-size: .92rem; line-height: 1.35; color: #cfe3f5; overflow-wrap: anywhere; }
+  .ach small { display: block; margin-bottom: .15rem; font-family: var(--px); font-size: .45rem; color: var(--green); }
+
+  /* ---------- 4. Мини-игра ---------- */
+  .hud { display: flex; align-items: center; gap: .7rem; width: min(100%, 26rem); font-family: var(--px); font-size: .62rem; color: var(--yellow); }
+  .hud .bar { flex: 1; }
+  .hud .bar i { width: var(--p, 0%); transition: width .25s steps(4); background: repeating-linear-gradient(90deg, var(--green) 0 6px, #2fd36a 6px 8px); }
+  .arena { position: relative; width: min(100%, 26rem); height: min(50vh, 24rem); overflow: hidden; touch-action: manipulation; background: rgba(10, 6, 30, .72); border: 4px solid var(--mag); box-shadow: 0 0 0 4px var(--bg), 0 0 0 7px var(--cyan), 0 0 30px rgba(255, 61, 172, .3); }
+  .gift { position: absolute; top: 0; left: calc(var(--p) * (100% - 3.6rem)); padding: .45rem; border: 0; background: none; font-size: 2.3rem; line-height: 1; cursor: pointer; touch-action: manipulation; filter: drop-shadow(0 0 8px rgba(255, 225, 74, .85)); animation: fallg var(--d) linear forwards; }
+  @keyframes fallg { from { transform: translateY(-3.6rem); } to { transform: translateY(var(--h)); } }
+  .gift.pop { animation: popg .3s steps(4) forwards; pointer-events: none; }
+  @keyframes popg { 0% { transform: scale(1); opacity: 1; } 100% { transform: scale(2.2); opacity: 0; } }
+  .win { text-align: center; display: grid; gap: .7rem; }
+  .win .h { color: var(--green); text-shadow: 3px 3px 0 #1d7a3c, 0 0 14px rgba(93, 255, 138, .5); }
+
+  /* ---------- 5. Фото ---------- */
+  .shot { position: relative; width: min(66vw, 17rem); aspect-ratio: 4 / 5; overflow: hidden; border: 4px solid var(--yellow); box-shadow: 0 0 0 4px var(--bg), 0 0 0 7px var(--cyan), 0 0 34px rgba(41, 240, 255, .35); background: linear-gradient(160deg, #2a1566, #5a1f86); touch-action: pan-y; user-select: none; }
+  .shot .slide { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity .6s steps(6); display: grid; place-items: center; pointer-events: none; -webkit-user-drag: none; }
+  .shot .slide.on { opacity: 1; }
+  .shot .ph { font-family: var(--px); font-size: 2.4rem; color: var(--yellow); text-shadow: 0 0 16px rgba(255, 225, 74, .7); }
+  .cap { min-height: 2.6rem; margin: 0; max-width: 22rem; text-align: center; font-size: 1.08rem; line-height: 1.35; font-weight: 500; }
+  .gnav { display: flex; justify-content: center; align-items: center; gap: 1rem; }
+  .arrow { width: 2.8rem; height: 2.8rem; padding: 0; border: 3px solid var(--cyan); background: var(--panel); color: var(--cyan); font-family: var(--px); font-size: 1rem; cursor: pointer; box-shadow: 0 4px 0 #0b8f99; }
+  .arrow:active { transform: translateY(3px); box-shadow: 0 1px 0 #0b8f99; }
+  .counter { font-family: var(--px); font-size: .62rem; color: var(--yellow); min-width: 6.2rem; text-align: center; }
+
+  /* ---------- 6. Диалог ---------- */
+  .dlg { padding-top: 1.7rem; cursor: pointer; }
+  .tag { position: absolute; top: -1.05rem; left: 1rem; padding: .45rem .7rem; font-family: var(--px); font-size: .58rem; background: var(--mag); color: #fff; text-transform: uppercase; box-shadow: 0 4px 0 #8f1f68; }
+  .dlg p { margin: 0 0 .85rem; font-size: 1.08rem; line-height: 1.55; min-height: 1.55em; }
+  .dlg p:first-of-type { font-weight: 600; color: var(--yellow); }
+  .dlg .more { display: block; text-align: right; font-family: var(--px); font-size: .8rem; color: var(--green); animation: blink .9s steps(2) infinite; }
+
+  /* ---------- 7. Финал ---------- */
+  .load { text-align: center; display: grid; gap: .9rem; width: min(100%, 26rem); }
+  .load .bar { height: 1.4rem; }
+  .load .bar i { width: var(--p, 0%); transition: none; background: repeating-linear-gradient(90deg, var(--cyan) 0 8px, #12b9c7 8px 10px); }
+  .load .pct { font-family: var(--px); font-size: .9rem; color: var(--yellow); }
+  .load .step { font-family: var(--px); font-size: .6rem; color: var(--green); line-height: 1.7; min-height: 2.4em; text-transform: uppercase; }
+  .finale { text-align: center; display: grid; gap: 1.1rem; justify-items: center; }
+  .finale .h { font-size: clamp(1.05rem, 5.6vw, 1.5rem); }
+  .finale .big { font-family: var(--px); font-size: clamp(.8rem, 4vw, 1rem); line-height: 1.8; color: var(--ink); text-transform: uppercase; text-shadow: 0 0 14px rgba(41, 240, 255, .6); margin: 0; }
+  .finale .hint { font-family: var(--px); font-size: .55rem; color: var(--cyan); animation: blink 1.2s steps(2) infinite; margin: 0; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .star, .grid, .press, .glitch, .btn .arr, .dlg .more, .finale .hint { animation: none; }
+    .scene.enter, .scene.leave { animation: none; }
+    .btn, .xpbar i, .ach, .bar i, .shot .slide { transition: none; }
+    .ach { transform: none; opacity: 1; }
+  }
+</style>
+</head>
+<body>
+<div id="bg" aria-hidden="true"></div>
+<div class="sun" aria-hidden="true"></div>
+<div class="grid" aria-hidden="true"></div>
+<canvas id="fx" aria-hidden="true"></canvas>
+
+<div class="xp" aria-hidden="true"><span id="xpLabel"></span><div class="xpbar"><i id="xpFill"></i></div></div>
+
+<main>
+  <!-- 1. Титульный экран -->
+  <section class="scene" id="s0" hidden>
+    <h1 class="title glitch"><span class="l1" id="l1"></span><span class="l2" id="l2"></span><span class="l3" id="l3"></span></h1>
+    <p class="press" id="press"></p>
+    <div class="actions"></div>
+  </section>
+
+  <!-- 2. Профиль игрока -->
+  <section class="scene" id="s1" hidden>
+    <h2 class="h" id="t1"></h2>
+    <div class="panel">
+      <div class="who"><div class="avatar" aria-hidden="true">👑</div><div><b id="whoName"></b><span id="whoClass"></span></div></div>
+      <div id="stats"></div>
+      <p class="ability"><b id="abilTitle"></b><span id="abilText"></span></p>
+    </div>
+    <div class="actions"></div>
+  </section>
+
+  <!-- 3. Достижения -->
+  <section class="scene" id="s2" hidden>
+    <h2 class="h" id="t2"></h2>
+    <div class="achs" id="achs"></div>
+    <div class="actions"></div>
+  </section>
+
+  <!-- 4. Мини-игра -->
+  <section class="scene" id="s3" hidden>
+    <h2 class="h" id="t3"></h2>
+    <p class="sub" id="hint3"></p>
+    <div class="hud"><span id="scoreText"></span><div class="bar"><i id="scoreBar"></i></div></div>
+    <div class="arena" id="arena"></div>
+    <div class="win" id="win" hidden>
+      <h3 class="h" id="winTitle"></h3>
+      <p class="sub" id="winText"></p>
+    </div>
+    <div class="actions"></div>
+  </section>
+
+  <!-- 5. Фото -->
+  <section class="scene" id="s4" hidden>
+    <h2 class="h" id="t4"></h2>
+    <div class="shot" id="shot"></div>
+    <p class="cap" id="cap"></p>
+    <div class="gnav">
+      <button class="arrow" id="prev" type="button" aria-label="Назад">◀</button>
+      <span class="counter" id="counter"></span>
+      <button class="arrow" id="nextPhoto" type="button" aria-label="Вперёд">▶</button>
+    </div>
+    <div class="actions"></div>
+  </section>
+
+  <!-- 6. Сообщение -->
+  <section class="scene" id="s5" hidden>
+    <div class="panel dlg" id="dlg">
+      <span class="tag" id="tag"></span>
+      <div id="dlgText"></div>
+      <span class="more" id="more" hidden>▼</span>
+    </div>
+    <div class="actions"></div>
+  </section>
+
+  <!-- 7. Финал -->
+  <section class="scene" id="s6" hidden>
+    <div class="panel load" id="load">
+      <p class="sub" id="loadTitle"></p>
+      <div class="bar"><i id="loadBar"></i></div>
+      <div class="pct" id="loadPct">0%</div>
+      <div class="step" id="loadStep"></div>
+    </div>
+    <div class="finale" id="finale" hidden>
+      <h2 class="h" id="finTitle"></h2>
+      <p class="big" id="finText"></p>
+      <p class="hint" id="finHint"></p>
+    </div>
+  </section>
+</main>
+
+<script>
+/* =====================================================
+   ЗДЕСЬ МЕНЯЕШЬ ТЕКСТ И ФОТО. Остальной код трогать не нужно.
+   ===================================================== */
+const CONFIG = {
+  name: "Ака",            // как обращаешься к брату (можно имя)
+  level: "24",           // его возраст, например "25". Пусто = просто «новый уровень»
+  from: "Твой младший брат",
+
+  ui: {
+    start: "Старт", next: "Дальше", press: "Нажми старт",
+    stage: "Стадия", score: "Счёт", frame: "Кадр"
+  },
+
+  /* 1. Титульный экран */
+  title1: "С днём рождения,",
+  title3Normal: "Новый уровень разблокирован",
+  title3Level: "Уровень {level} разблокирован",
+
+  /* 2. Профиль */
+  profileTitle: "Профиль игрока",
+  playerClass: "Класс: старший брат",
+  stats: [
+    { n: "Сила", v: 99 },
+    { n: "Мудрость", v: 95 },
+    { n: "Юмор", v: 90 },
+    { n: "Щедрость", v: 100 },
+    { n: "Защита", v: 100 }
+  ],
+  abilityTitle: "Особая способность",
+  abilityText: "Быть рядом именно тогда, когда это нужно.",
+
+  /* 3. Достижения */
+  achTitle: "Достижения",
+  achLabel: "Разблокировано",
+  ach: [
+    { i: "🛡️", t: "Личный защитник", d: "Всегда прикрывал мне спину" },
+    { i: "🧠", t: "Главный советчик", d: "Знает ответ на любой вопрос" },
+    { i: "😂", t: "Мастер шуток", d: "Поднимает настроение за секунду" },
+    { i: "📱", t: "Всегда на связи", d: "Отвечает, когда это важно" },
+    { i: "⭐", t: "Пример для подражания", d: "Тот, на кого я равняюсь" },
+    { i: "🏆", t: "Лучший брат", d: "Редкое достижение: 1 из 1" }
+  ],
+
+  /* 4. Мини-игра */
+  gameTitle: "Поймай подарки",
+  gameHint: "Лови падающие подарки. Нужно 10!",
+  goal: 10,
+  gifts: ["🎁", "🎂", "💎", "⭐", "🎈"],
+  winTitle: "Уровень пройден!",
+  winText: "Бонус: +100 к уважению",
+
+  /* 5. Фото: загрузи фото в репозиторий и впиши точные имена (латиницей,
+     строчными). Нет файла = красивая рамка. Можно добавлять строки. */
+  photosTitle: "Сохранённые кадры",
+  photos: [
+    { src: "brat1.jpg", caption: "Наши лучшие моменты" },
+    { src: "brat2.jpg", caption: "Тот самый день" },
+    { src: "brat3.jpg", caption: "Всегда вместе" },
+    { src: "brat4.jpg", caption: "Ты легенда" }
+  ],
+
+  /* 6. Сообщение */
+  tag: "Младший брат",
+  letter: [
+    "Брат, с днём рождения!",
+    "Ты всегда был для меня примером. Рядом с тобой я знаю: что бы ни случилось, у меня есть опора.",
+    "Спасибо, что учил, защищал и поддерживал, даже когда я этого не замечал.",
+    "Желаю тебе здоровья, больших побед и чтобы все цели проходились с первого раза. Ты у меня лучший."
+  ],
+
+  /* 7. Финал */
+  loadTitle: "Загрузка подарка...",
+  loadSteps: ["Загрузка уважения...", "Загрузка благодарности...", "Упаковка подарка..."],
+  finTitle: "Подарок получен!",
+  finText: "Ты игрок номер один. С днём рождения, брат!",
+  finHint: "Нажимай на экран: запускай салюты"
+};
+
+/* ---------------- код ---------------- */
+const $ = (id) => document.getElementById(id);
+const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+const rnd = (a, b) => a + Math.random() * (b - a);
+const ids = ["s0", "s1", "s2", "s3", "s4", "s5", "s6"];
+const scenes = ids.map($);
+let cur = -1, busy = false, timers = [], intervals = [];
+const later = (fn, ms) => timers.push(setTimeout(fn, ms));
+const every = (fn, ms) => intervals.push(setInterval(fn, ms));
+const clearAll = () => { timers.forEach(clearTimeout); intervals.forEach(clearInterval); timers = []; intervals = []; };
+
+/* Звёзды */
+for (let i = 0; i < 80; i++) {
+  const s = document.createElement("span");
+  s.className = "star";
+  const sz = Math.random() < .2 ? 3 : 2;
+  s.style.left = rnd(0, 100) + "%";
+  s.style.top = rnd(0, 70) + "%";
+  s.style.setProperty("--s", sz + "px");
+  s.style.setProperty("--o", rnd(.4, 1).toFixed(2));
+  s.style.setProperty("--d", rnd(1.2, 3.5) + "s");
+  s.style.setProperty("--dl", -rnd(0, 3) + "s");
+  $("bg").appendChild(s);
+}
+
+/* Тексты */
+const U = CONFIG.ui;
+$("l1").textContent = CONFIG.title1;
+$("l2").textContent = CONFIG.name + "!";
+$("l3").textContent = CONFIG.level ? CONFIG.title3Level.replace("{level}", CONFIG.level) : CONFIG.title3Normal;
+$("press").textContent = U.press;
+$("t1").textContent = CONFIG.profileTitle;
+$("whoName").textContent = CONFIG.name;
+$("whoClass").textContent = CONFIG.playerClass;
+$("abilTitle").textContent = CONFIG.abilityTitle;
+$("abilText").textContent = CONFIG.abilityText;
+$("t2").textContent = CONFIG.achTitle;
+$("t3").textContent = CONFIG.gameTitle;
+$("hint3").textContent = CONFIG.gameHint;
+$("winTitle").textContent = CONFIG.winTitle;
+$("winText").textContent = CONFIG.winText;
+$("t4").textContent = CONFIG.photosTitle;
+$("tag").textContent = CONFIG.tag;
+$("loadTitle").textContent = CONFIG.loadTitle;
+$("finTitle").textContent = CONFIG.finTitle;
+$("finText").textContent = CONFIG.finText;
+$("finHint").textContent = CONFIG.finHint;
+
+/* Кнопки «Дальше» (кроме последней сцены) */
+document.querySelectorAll(".actions").forEach((a) => {
+  const b = document.createElement("button");
+  b.type = "button";
+  b.className = "btn";
+  b.innerHTML = '<span class="lbl"></span><span class="arr">▶</span>';
+  b.querySelector(".lbl").textContent = a.closest("#s0") ? U.start : U.next;
+  b.addEventListener("click", () => { if (!busy) go(cur + 1); });
+  a.appendChild(b);
+});
+function showNext(scene, ms) {
+  later(() => { const b = scene.querySelector(".btn"); if (b) b.classList.add("show"); }, reduce ? 0 : ms);
+}
+
+/* ---- Профиль: полоски ---- */
+CONFIG.stats.forEach((st) => {
+  const row = document.createElement("div");
+  row.className = "stat";
+  row.innerHTML = '<label></label><div class="bar"><i></i></div><em></em>';
+  row.querySelector("label").textContent = st.n;
+  row.querySelector("i").style.setProperty("--v", Math.min(100, st.v) + "%");
+  row.querySelector("em").textContent = st.v >= 100 ? "MAX" : st.v;
+  $("stats").appendChild(row);
+});
+
+/* ---- Достижения ---- */
+CONFIG.ach.forEach((a) => {
+  const el = document.createElement("div");
+  el.className = "ach";
+  el.innerHTML = '<span class="ic" aria-hidden="true"></span><div class="txt"><small></small><b></b><span class="dsc"></span></div>';
+  el.querySelector(".ic").textContent = a.i;
+  el.querySelector("small").textContent = "★ " + CONFIG.achLabel;
+  el.querySelector("b").textContent = a.t;
+  el.querySelector(".dsc").textContent = a.d;
+  $("achs").appendChild(el);
+});
+
+/* ---- Фото ---- */
+let slides = [], idx = 0, ptimer = null;
+function showPhoto(i) {
+  const n = slides.length;
+  if (!n) return;
+  idx = (i + n) % n;
+  [...$("shot").children].forEach((el, k) => el.classList.toggle("on", k === idx));
+  $("cap").textContent = slides[idx].caption || "";
+  $("counter").textContent = U.frame + " " + (idx + 1) + "/" + n;
+}
+function restartPhotos() {
+  clearInterval(ptimer);
+  if (!reduce && slides.length > 1) ptimer = setInterval(() => showPhoto(idx + 1), 4500);
+}
+(async function () {
+  const list = CONFIG.photos || [];
+  const ok = await Promise.all(list.map((p) => new Promise((res) => {
+    const im = new Image();
+    im.onload = () => res(true);
+    im.onerror = () => res(false);
+    im.src = p.src;
+  })));
+  const loaded = list.filter((_, i) => ok[i]);
+  slides = loaded.length ? loaded : list.slice(0, 3).map((p) => ({ caption: p.caption, ph: true }));
+  slides.forEach((p, i) => {
+    let el;
+    if (p.ph) { el = document.createElement("div"); el.innerHTML = '<span class="ph" aria-hidden="true">★</span>'; }
+    else { el = document.createElement("img"); el.src = p.src; el.alt = p.caption || ""; }
+    el.className = "slide";
+    $("shot").appendChild(el);
+  });
+  const single = slides.length < 2;
+  $("prev").hidden = single; $("nextPhoto").hidden = single;
+  $("prev").addEventListener("click", () => { showPhoto(idx - 1); restartPhotos(); });
+  $("nextPhoto").addEventListener("click", () => { showPhoto(idx + 1); restartPhotos(); });
+  let sx = null;
+  const sh = $("shot");
+  sh.addEventListener("pointerdown", (e) => { sx = e.clientX; });
+  sh.addEventListener("pointerup", (e) => {
+    if (sx === null) return;
+    const dx = e.clientX - sx; sx = null;
+    if (Math.abs(dx) > 40) { showPhoto(dx < 0 ? idx + 1 : idx - 1); restartPhotos(); }
+  });
+  sh.addEventListener("pointercancel", () => { sx = null; });
+  showPhoto(0);
+})();
+
+/* ---- Мини-игра ---- */
+let score = 0, won = false;
+function updateScore() {
+  $("scoreText").textContent = U.score + " " + score + "/" + CONFIG.goal;
+  $("scoreBar").style.setProperty("--p", Math.min(100, score / CONFIG.goal * 100) + "%");
+}
+function spawnGift() {
+  const arena = $("arena");
+  const g = document.createElement("button");
+  g.type = "button";
+  g.className = "gift";
+  g.textContent = CONFIG.gifts[Math.floor(Math.random() * CONFIG.gifts.length)];
+  g.style.setProperty("--p", Math.random().toFixed(3));
+  g.style.setProperty("--h", arena.clientHeight + "px");
+  g.style.setProperty("--d", rnd(2.6, 4.2).toFixed(2) + "s");
+  g.addEventListener("pointerdown", (e) => {
+    e.preventDefault();
+    if (g.classList.contains("pop") || won) return;
+    g.classList.add("pop");
+    setTimeout(() => g.remove(), 320);
+    score++;
+    updateScore();
+    if (score >= CONFIG.goal) winGame();
+  });
+  g.addEventListener("animationend", (e) => { if (e.animationName === "fallg") g.remove(); });
+  arena.appendChild(g);
+  if (reduce) { g.style.animation = "none"; g.style.top = rnd(4, 78) + "%"; setTimeout(() => g.remove(), 3500); }
+}
+function winGame() {
+  won = true;
+  clearAll();
+  $("arena").querySelectorAll(".gift:not(.pop)").forEach((g) => g.remove());
+  $("win").hidden = false;
+  $("hint3").hidden = true;
+  showNext($("s3"), 900);
+}
+
+/* ---- Диалог с печатью ---- */
+let typeTimer = null, typed = false;
+function typeLetter() {
+  const box = $("dlgText");
+  box.innerHTML = "";
+  $("more").hidden = true;
+  typed = false;
+  const lines = CONFIG.letter;
+  const ps = lines.map(() => { const p = document.createElement("p"); box.appendChild(p); return p; });
+  const finish = () => {
+    if (typed) return;
+    typed = true;
+    clearTimeout(typeTimer);
+    lines.forEach((t, i) => { ps[i].textContent = t; });
+    $("more").hidden = false;
+    showNext($("s5"), 400);
+  };
+  window.skipTyping = finish;
+  if (reduce) { finish(); return; }
+  let li = 0, ci = 0;
+  (function step() {
+    if (typed) return;
+    if (li >= lines.length) { finish(); return; }
+    const t = lines[li];
+    ps[li].textContent = t.slice(0, ci++);
+    if (ci > t.length) { li++; ci = 0; typeTimer = setTimeout(step, 380); }
+    else typeTimer = setTimeout(step, 26);
+  })();
+}
+$("dlg").addEventListener("click", () => { if (window.skipTyping) window.skipTyping(); });
+
+/* ---- Салют ---- */
+const fx = $("fx"), ctx = fx.getContext("2d");
+let W = 0, H = 0, dpr = 1, rockets = [], parts = [], fxOn = false, raf = null;
+function resize() {
+  dpr = Math.min(window.devicePixelRatio || 1, 2);
+  W = fx.width = innerWidth * dpr;
+  H = fx.height = innerHeight * dpr;
+}
+window.addEventListener("resize", resize);
+resize();
+function rocket(x) {
+  rockets.push({ x: (x ?? rnd(.12, .88) * innerWidth) * dpr, y: H, vy: -rnd(9, 12) * dpr, ty: rnd(.14, .45) * H, hue: Math.floor(rnd(0, 360)) });
+}
+function burst(x, y, hue) {
+  const n = 70;
+  for (let i = 0; i < n; i++) {
+    const a = (Math.PI * 2 * i) / n + rnd(-.05, .05);
+    const sp = rnd(1.2, 5.2) * dpr;
+    parts.push({ x, y, px: x, py: y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, life: rnd(60, 100), max: 100, hue: hue + rnd(-20, 20) });
+  }
+}
+function frame() {
+  ctx.clearRect(0, 0, W, H);
+  ctx.globalCompositeOperation = "lighter";
+  rockets = rockets.filter((r) => {
+    r.py = r.y; r.y += r.vy; r.vy += .1 * dpr;
+    ctx.strokeStyle = "hsl(" + r.hue + ",100%,70%)";
+    ctx.lineWidth = 2 * dpr;
+    ctx.beginPath(); ctx.moveTo(r.x, r.py); ctx.lineTo(r.x, r.y + 8 * dpr); ctx.stroke();
+    if (r.y <= r.ty || r.vy > -1) { burst(r.x, r.y, r.hue); return false; }
+    return true;
+  });
+  parts = parts.filter((p) => {
+    p.px = p.x; p.py = p.y;
+    p.x += p.vx; p.y += p.vy; p.vy += .055 * dpr; p.vx *= .985; p.vy *= .985; p.life--;
+    const a = Math.max(0, p.life / p.max);
+    ctx.strokeStyle = "hsla(" + p.hue + ",100%,65%," + a + ")";
+    ctx.lineWidth = 2.2 * dpr;
+    ctx.beginPath(); ctx.moveTo(p.px, p.py); ctx.lineTo(p.x, p.y); ctx.stroke();
+    return p.life > 0;
+  });
+  if (fxOn || parts.length || rockets.length) raf = requestAnimationFrame(frame);
+  else { raf = null; ctx.clearRect(0, 0, W, H); }
+}
+function startFx() {
+  if (reduce) return;
+  fxOn = true;
+  if (!raf) raf = requestAnimationFrame(frame);
+}
+window.addEventListener("pointerdown", (e) => {
+  if (cur !== 6 || $("finale").hidden || reduce) return;
+  rocket(e.clientX);
+  if (Math.random() < .5) rocket();
+});
+
+function finale() {
+  $("load").hidden = true;
+  $("finale").hidden = false;
+  startFx();
+  rocket(); rocket(); rocket();
+  every(() => rocket(), 900);
+}
+function runLoading() {
+  let p = 0;
+  const steps = CONFIG.loadSteps;
+  $("loadStep").textContent = steps[0];
+  if (reduce) { finale(); return; }
+  every(() => {
+    p += rnd(1.2, 2.6);
+    if (p >= 100) {
+      p = 100;
+      $("loadBar").style.setProperty("--p", "100%");
+      $("loadPct").textContent = "100%";
+      clearAll();
+      later(finale, 500);
+      return;
+    }
+    $("loadBar").style.setProperty("--p", p + "%");
+    $("loadPct").textContent = Math.floor(p) + "%";
+    $("loadStep").textContent = steps[Math.min(steps.length - 1, Math.floor(p / (100 / steps.length)))];
+  }, 60);
+}
+
+/* ---- Сцены ---- */
+const enter = [
+  function (s) { showNext(s, 1200); },
+  function (s) { s.classList.remove("go"); later(() => s.classList.add("go"), reduce ? 0 : 500); showNext(s, 3200); },
+  function (s) {
+    const items = [...s.querySelectorAll(".ach")];
+    items.forEach((el, i) => later(() => el.classList.add("in"), reduce ? 0 : 400 + i * 800));
+    showNext(s, 400 + items.length * 800 + 600);
+  },
+  function () {
+    score = 0; won = false;
+    $("win").hidden = true; $("hint3").hidden = false;
+    $("arena").innerHTML = "";
+    updateScore();
+    spawnGift();
+    every(spawnGift, 650);
+  },
+  function (s) { showPhoto(0); restartPhotos(); showNext(s, 3500); },
+  function () { typeLetter(); },
+  function () { runLoading(); }
+];
+
+function updateProgress() {
+  $("xpLabel").textContent = U.stage + " " + (cur + 1) + "/" + scenes.length;
+  $("xpFill").style.setProperty("--p", ((cur + 1) / scenes.length * 100) + "%");
+}
+function go(n) {
+  if (n >= scenes.length) return;
+  busy = true;
+  clearAll();
+  clearInterval(ptimer);
+  clearTimeout(typeTimer);
+  const prev = cur >= 0 ? scenes[cur] : null;
+  cur = n;
+  const wait = prev && !reduce ? 350 : 0;
+  if (prev) {
+    prev.classList.remove("enter");
+    prev.classList.add("leave");
+    setTimeout(() => { prev.hidden = true; prev.classList.remove("leave"); }, wait);
+  }
+  setTimeout(() => {
+    const s = scenes[n];
+    s.hidden = false;
+    s.classList.add("enter");
+    window.scrollTo(0, 0);
+    updateProgress();
+    enter[n](s);
+    busy = false;
+  }, wait);
+}
+go(0);
+</script>
+</body>
+</html>
